@@ -1,5 +1,6 @@
 import java.net.URLEncoder
 import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 
 import scala.util.matching.Regex
 
@@ -31,15 +32,16 @@ case class DataDomeFormData(
 
 object DataDomeFormData {
 
+  val formater: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MMM/yyyy:HH:mm:ssZ")
   val apacheLogRegex: Regex ="""(.*) (.*) (.*) \[(.*) (.*)\] "(.*) (.*) (.*)/(.*)" (.*) (.*) "(.*)" "(.*)" "(.*)"""".r
 
   def apply(log: String): DataDomeFormData =
   {
     apacheLogRegex.findFirstMatchIn(log) match {
       case Some(m) =>
-        DataDomeFormData("KEY","ModuleName","1.0","ServerName",m.groupNames(0),80,
-          ZonedDateTime.parse(m.groupNames(3)+m.groupNames(4)).toEpochSecond,m.groupNames(7),m.groupNames(5),"", m.groupNames(6),
-          List("Host","UserAgent","Referer"),m.group(12),m.groupNames(11),m.groupNames(10))
+        DataDomeFormData("KEY","ModuleName","1.0","ServerName",m.group(1),80,
+          ZonedDateTime.parse(m.group(4)+m.group(5), formater).toInstant.toEpochMilli,m.group(8),m.group(6),"ServerHostName", m.group(7),
+          List("Host","UserAgent","Referer"),m.group(14),m.group(13),m.group(12))
       case _ =>
         DataDomeFormData("ERROR","","",""
           ,"",-1,-1,"","","","",
@@ -48,3 +50,4 @@ object DataDomeFormData {
 
   }
 }
+
